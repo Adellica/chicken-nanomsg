@@ -1,4 +1,4 @@
-(use lolevel foreigners)
+(use lolevel foreigners srfi-18)
 
 #>
 #include <nanomsg/nn.h>
@@ -32,7 +32,10 @@
 
 (define (nn-assert val)
   (if (< val 0)
-      (error (nn-strerror) val)
+      (if (= (foreign-value "errno" int)
+             (foreign-value "EAGAIN" int))
+          #f ;; signal EGAIN with #f, other errors will throw
+          (error (nn-strerror) val))
       val))
 
 ;; int nn_socket (int domain, int protocol)
@@ -62,16 +65,42 @@
   (nn-assert ( (foreign-lambda int "nn_recv" int (c-pointer void) int int)
               socket data (or size (number-of-bytes data)) flags)))
 
-;; return the next message as a string.
-(define (nn-recv socket #!optional (flags 0))
-   ;; make a pointer which nanomsg will point to its newly allocated
-   ;; message
+;; plain nn-recv, will read-block other srfi-18 threads unless
+;; nn/dontwait flag is specified. returns the next message as a
+;; string.
+(define (nn-recv* socket #!optional (flags 0))
+  ;; make a pointer which nanomsg will point to its newly allocated
+  ;; message
   (let-location
    ((dst (c-pointer void) #f))
-   (let* ((size (nn-recv! socket (location dst) (foreign-value "NN_MSG" int) flags))
-          (blb (make-string size)))
+   (and-let* ((size (nn-recv! socket (location dst) (foreign-value "NN_MSG" int) flags))
+              (blb (make-string size)))
      (move-memory! dst blb size)
      (nn-freemsg! dst)
      blb)))
+
+;; get the pollable fd for socket.
+(define (nn-recv-fd socket)
+  (let-location ((fd int -1)
+                 (fd_size int (foreign-value "sizeof(int)" int)))
+                (nn-assert
+                 ((foreign-lambda* int ( (int socket)
+                                    ((c-pointer int) fd)
+                                    ((c-pointer int) fds))
+                              "return(nn_getsockopt(socket, NN_SOL_SOCKET, NN_RCVFD, fd, fds));")
+                  socket (location fd) (location fd_size)))
+                (if (not (= (foreign-value "sizeof(int)" int) fd_size))
+                    (error "invalid nn_getsockopt destination storage size" fd_size))
+                fd))
+
+;; wait for message on socket, return it as string. does not block
+;; other srfi-18 threads.
+(define (nn-recv socket)
+  ;; is getting the fd an expensive operation?
+  (let ((fd (nn-recv-fd socket)))
+    (let loop ()
+      (thread-wait-for-i/o! fd #:input)
+      (or (nn-recv* socket nn/dontwait)
+          (loop)))))
 
 ;; TODO: support nn_sendmsg and nn_recvmsg?
