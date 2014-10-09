@@ -46,10 +46,8 @@ Favored TODO's:
 (nn-bind s "tcp://127.0.0.1:22022")
 
 (let loop ((n 0))
-  (let ((msg (nn-recv s)))
-    (nn-send s (conc msg " " n))
-    (thread-sleep! 1)
-    (loop (add1 n))))
+  (nn-send s (conc (nn-recv s) " " n))
+  (loop (add1 n)))
 
 (nn-close s)
 ```
