@@ -30,6 +30,8 @@
 (define (nn-strerror #!optional (errno (foreign-value "errno" int)))
   ((foreign-lambda c-string "nn_strerror" int) errno))
 
+;; let val pass unless it is negative, in which case gulp with the nn
+;; error-string. on EAGAIN, return #f.
 (define (nn-assert val)
   (if (< val 0)
       (if (= (foreign-value "errno" int)
@@ -40,6 +42,7 @@
 
 ;; int nn_socket (int domain, int protocol)
 ;; OBS: args reversed
+;; TODO: add finalizer
 (define (nn-socket protocol #!optional (domain 'sp))
   (nn-assert ((foreign-lambda int nn_socket nn-domain nn-protocol)
               domain
