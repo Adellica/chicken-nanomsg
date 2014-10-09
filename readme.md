@@ -18,11 +18,11 @@ on a socket's recv file-descriptor.
 
 ## Requirements
 
-This egg is (poorly) tested against nanomsg-0.4-beta.
+This egg requires nanomsg-0.4-beta.
 
 ## Development Status
 These bindings are incomplete. If you're missing something, please
-create github issues.
+create github issues!
 
 Currently supported:
 
@@ -34,3 +34,30 @@ Currently supported:
 Favored TODO's:
 - all socket types (pair, push, pull)
 - nn-socket record with nn-close in finalizer
+- bundle nanomsg itself?
+
+## Sample
+
+```scheme
+;; test.scm
+(use nanomsg)
+
+(define s (nn-socket 'rep))
+(nn-bind s "tcp://127.0.0.1:22022")
+
+(let loop ((n 0))
+  (let ((msg (nn-recv s)))
+    (nn-send s (conc msg " " n))
+    (thread-sleep! 1)
+    (loop (add1 n))))
+
+(nn-close s)
+```
+
+then test with the brilliant `nanocat` util that comes with [nanomsg]:
+
+
+```bash
+$ csi -s test.scm &
+$ nanocat --req -l22022 -D"bottles of beer:" -A --interval 1
+```
