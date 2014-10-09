@@ -99,11 +99,15 @@
 ;; wait for message on socket, return it as string. does not block
 ;; other srfi-18 threads.
 (define (nn-recv socket)
-  ;; is getting the fd an expensive operation?
-  (let ((fd (nn-recv-fd socket)))
-    (let loop ()
-      (thread-wait-for-i/o! fd #:input)
-      (or (nn-recv* socket nn/dontwait)
+  (let loop ()
+    ;; make a non-blocking attempt first, and if we get EAGAIN (#f),
+    ;; wait and retry. let's give nn a chance to error with
+    ;; something other than EAGAIN before waiting for i/o. for
+    ;; example, nn-recv on PUB socket would block infinitely
+    (or (nn-recv* socket nn/dontwait)
+        (begin
+          ;; is getting the fd an expensive operation?
+          (thread-wait-for-i/o! (nn-recv-fd socket) #:input)
           (loop)))))
 
 ;; TODO: support nn_sendmsg and nn_recvmsg?
