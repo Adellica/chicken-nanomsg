@@ -55,6 +55,18 @@
                     (error "invalid nn_getsockopt destination storage size" fd_size))
                 fd))
 
+(define (nn-subscribe socket prefix)
+  (nn-assert
+   ((foreign-lambda* int ( (int socket)
+                      (nonnull-blob prefix)
+                      (int len))
+                "return("
+                "nn_setsockopt(socket, NN_SUB, NN_SUB_SUBSCRIBE, prefix, len)"
+                ");")
+    socket prefix (string-length prefix))))
+
+
+
 ;; int nn_socket (int domain, int protocol)
 ;; OBS: args reversed
 ;; TODO: add finalizer
