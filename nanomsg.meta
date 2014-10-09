@@ -1,2 +1,5 @@
 ;; -*- scheme -*-
-((author "Adellica"))
+((author "Adellica AS")
+ (license "MIT") ;; same as nanomsg
+ (depends foreigners)
+ (category net))
