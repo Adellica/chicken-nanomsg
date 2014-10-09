@@ -40,6 +40,21 @@
           (error (nn-strerror) val))
       val))
 
+
+;; get the pollable fd for socket.
+(define (nn-recv-fd socket)
+  (let-location ((fd int -1)
+                 (fd_size int (foreign-value "sizeof(int)" int)))
+                (nn-assert
+                 ((foreign-lambda* int ( (int socket)
+                                    ((c-pointer int) fd)
+                                    ((c-pointer int) fds))
+                              "return(nn_getsockopt(socket, NN_SOL_SOCKET, NN_RCVFD, fd, fds));")
+                  socket (location fd) (location fd_size)))
+                (if (not (= (foreign-value "sizeof(int)" int) fd_size))
+                    (error "invalid nn_getsockopt destination storage size" fd_size))
+                fd))
+
 ;; int nn_socket (int domain, int protocol)
 ;; OBS: args reversed
 ;; TODO: add finalizer
@@ -81,20 +96,6 @@
      (move-memory! dst blb size)
      (nn-freemsg! dst)
      blb)))
-
-;; get the pollable fd for socket.
-(define (nn-recv-fd socket)
-  (let-location ((fd int -1)
-                 (fd_size int (foreign-value "sizeof(int)" int)))
-                (nn-assert
-                 ((foreign-lambda* int ( (int socket)
-                                    ((c-pointer int) fd)
-                                    ((c-pointer int) fds))
-                              "return(nn_getsockopt(socket, NN_SOL_SOCKET, NN_RCVFD, fd, fds));")
-                  socket (location fd) (location fd_size)))
-                (if (not (= (foreign-value "sizeof(int)" int) fd_size))
-                    (error "invalid nn_getsockopt destination storage size" fd_size))
-                fd))
 
 ;; wait for message on socket, return it as string. does not block
 ;; other srfi-18 threads.
