@@ -1,0 +1,7 @@
+;; -*- scheme -*-
+
+(compile -s nanomsg-module.scm -J -o nanomsg.so -lnanomsg)
+(compile -s nanomsg.import.scm)
+
+(install-extension 'nanomsg
+                   '("nanomsg.so" "nanomsg.import.so"));
