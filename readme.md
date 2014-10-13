@@ -26,14 +26,13 @@ create github issues!
 
 Currently supported:
 
-- nn-socket, nn-bind, nn-connect and nn-close (must close explicitly!)
+- nn-socket (which finalizer closes), nn-bind, nn-connect and nn-close
 - nn-send
 - non-blocking nn-recv returning strings
 - nn-subscribe
 
 Favored TODO's:
 - all socket types (pair, push, pull)
-- nn-socket record with nn-close in finalizer
 - bundle nanomsg itself?
 
 ## Sample

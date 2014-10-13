@@ -73,19 +73,21 @@
                 ");")
     socket prefix (string-length prefix))))
 
+(define (nn-close socket)
+  (nn-assert ( (foreign-lambda int "nn_close" nn-socket) socket)))
+
 
 
 ;; int nn_socket (int domain, int protocol)
 ;; OBS: args reversed
 ;; TODO: add finalizer
 (define (nn-socket protocol #!optional (domain 'sp))
-  (%nn-socket-box
-   (nn-assert ((foreign-lambda int nn_socket nn-domain nn-protocol)
-               domain
-               protocol))))
-
-(define (nn-close socket)
-  (nn-assert ( (foreign-lambda int "nn_close" nn-socket) socket)))
+  (set-finalizer!
+   (%nn-socket-box
+    (nn-assert ((foreign-lambda int nn_socket nn-domain nn-protocol)
+                domain
+                protocol)))
+   nn-close))
 
 (define (nn-bind socket address)
   (nn-assert ((foreign-lambda int "nn_bind" nn-socket c-string) socket address)))
