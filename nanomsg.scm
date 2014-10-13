@@ -9,6 +9,8 @@
 
 ;; TODO: socket options NN_SUB_SUBSCRIBE NN_SUB_UNSUBSCRIBE
 
+
+(define-foreign-type nn-socket int)
 ;; nanomsg protocol enum
 (define-foreign-enum-type (nn-protocol int)
   (nn-protocol->int int->nn-protocol)
@@ -46,7 +48,7 @@
   (let-location ((fd int -1)
                  (fd_size int (foreign-value "sizeof(int)" int)))
                 (nn-assert
-                 ((foreign-lambda* int ( (int socket)
+                 ((foreign-lambda* int ( (nn-socket socket)
                                     ((c-pointer int) fd)
                                     ((c-pointer size_t) fds))
                               "return(nn_getsockopt(socket, NN_SOL_SOCKET, NN_RCVFD, fd, fds));")
@@ -57,7 +59,7 @@
 
 (define (nn-subscribe socket prefix)
   (nn-assert
-   ((foreign-lambda* int ( (int socket)
+   ((foreign-lambda* int ( (nn-socket socket)
                       (nonnull-blob prefix)
                       (int len))
                 "return("
@@ -76,23 +78,23 @@
               protocol)))
 
 (define (nn-close socket)
-  (nn-assert ( (foreign-lambda int "nn_close" int) socket)))
+  (nn-assert ( (foreign-lambda int "nn_close" nn-socket) socket)))
 
 (define (nn-bind socket address)
-  (nn-assert ((foreign-lambda int "nn_bind" int c-string) socket address)))
+  (nn-assert ((foreign-lambda int "nn_bind" nn-socket c-string) socket address)))
 
 (define (nn-connect socket address)
-  (nn-assert ((foreign-lambda int "nn_connect" int c-string) socket address)))
+  (nn-assert ((foreign-lambda int "nn_connect" nn-socket c-string) socket address)))
 
 (define (nn-freemsg! pointer)
   (nn-assert ( (foreign-lambda int "nn_freemsg" (c-pointer void)) pointer)))
 
 (define (nn-send socket data #!optional (flags 0))
-  (nn-assert ( (foreign-lambda int "nn_send" int blob int int)
+  (nn-assert ( (foreign-lambda int "nn_send" nn-socket blob int int)
               socket data (number-of-bytes data) flags)))
 
 (define (nn-recv! socket data size flags)
-  (nn-assert ( (foreign-lambda int "nn_recv" int (c-pointer void) int int)
+  (nn-assert ( (foreign-lambda int "nn_recv" nn-socket (c-pointer void) int int)
               socket data (or size (number-of-bytes data)) flags)))
 
 ;; plain nn-recv, will read-block other srfi-18 threads unless
