@@ -5,6 +5,7 @@
 #include <nanomsg/pipeline.h>
 #include <nanomsg/pubsub.h>
 #include <nanomsg/reqrep.h>
+#include <nanomsg/survey.h>
 <#
 
 ;; TODO: socket options NN_SUB_SUBSCRIBE NN_SUB_UNSUBSCRIBE
@@ -23,7 +24,8 @@
 
   (pub  NN_PUB)  (sub  NN_SUB)
   (pull NN_PULL) (push NN_PUSH)
-  (req  NN_REQ)  (rep  NN_REP))
+  (req  NN_REQ)  (rep  NN_REP)
+  (surveyor NN_SURVEYOR)  (respondent NN_RESPONDENT))
 
 ;; nanomsg domain (AF_SP)
 (define-foreign-enum-type (nn-domain int)
