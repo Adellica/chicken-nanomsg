@@ -48,7 +48,7 @@
                 (nn-assert
                  ((foreign-lambda* int ( (int socket)
                                     ((c-pointer int) fd)
-                                    ((c-pointer int) fds))
+                                    ((c-pointer size_t) fds))
                               "return(nn_getsockopt(socket, NN_SOL_SOCKET, NN_RCVFD, fd, fds));")
                   socket (location fd) (location fd_size)))
                 (if (not (= (foreign-value "sizeof(int)" int) fd_size))
