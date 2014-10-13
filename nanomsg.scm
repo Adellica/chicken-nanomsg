@@ -9,8 +9,14 @@
 
 ;; TODO: socket options NN_SUB_SUBSCRIBE NN_SUB_UNSUBSCRIBE
 
+(define-record-type nn-socket (%nn-socket-box int)
+  nn-socket?
+  (int %nn-socket-unbox))
 
-(define-foreign-type nn-socket int)
+(define-foreign-type nn-socket int
+  %nn-socket-unbox
+  %nn-socket-box)
+
 ;; nanomsg protocol enum
 (define-foreign-enum-type (nn-protocol int)
   (nn-protocol->int int->nn-protocol)
@@ -73,9 +79,10 @@
 ;; OBS: args reversed
 ;; TODO: add finalizer
 (define (nn-socket protocol #!optional (domain 'sp))
-  (nn-assert ((foreign-lambda int nn_socket nn-domain nn-protocol)
-              domain
-              protocol)))
+  (%nn-socket-box
+   (nn-assert ((foreign-lambda int nn_socket nn-domain nn-protocol)
+               domain
+               protocol))))
 
 (define (nn-close socket)
   (nn-assert ( (foreign-lambda int "nn_close" nn-socket) socket)))
