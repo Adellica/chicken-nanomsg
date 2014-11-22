@@ -32,7 +32,6 @@ Currently supported:
 - nn-subscribe
 
 Favored TODO's:
-- all socket types (pair, push, pull)
 - bundle nanomsg itself?
 
 All of nanomsg's protocols are supported:
