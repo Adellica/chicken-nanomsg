@@ -26,10 +26,11 @@ create github issues!
 
 Currently supported:
 
-- nn-socket (which finalizer closes), nn-bind, nn-connect and nn-close
-- nn-send
-- non-blocking nn-recv returning strings
-- nn-subscribe
+- `nn-socket` records types with finalizer
+- `nn-bind` and `nn-connect`
+- `nn-send` and `nn-recv`
+- non-blocking `nn-recv` with `(thread-wait-for-i/o!)`
+- nn-subscribe for `(nn-socket 'sub)` sockets
 
 Favored TODO's:
 - bundle nanomsg itself?
