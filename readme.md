@@ -35,6 +35,18 @@ Favored TODO's:
 - all socket types (pair, push, pull)
 - bundle nanomsg itself?
 
+The following nanomsg's protocols are supported:
+
+- Request/reply protocol (req rep)
+- Publish/subscribe protocol (pub sub)
+- Survey protocol (survey respondent)
+- Pipeline protocol (push pull)
+
+The following are currently missing:
+
+- One-to-one protocol (pair)
+- Message bus protocol (bus)
+
 ## Sample
 
 ```scheme
