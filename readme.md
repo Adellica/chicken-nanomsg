@@ -21,8 +21,12 @@ on a socket's recv file-descriptor.
 This egg requires nanomsg-0.4-beta. Not tested on nanomsg-0.5-beta.
 
 ## Development Status
-These bindings are incomplete. If you're missing something, please
-create github issues!
+
+These bindings are incomplete. All protocols and transport types
+should be supported. However, socket options (`nn_setsockopt` and
+`nn_getsockopt`) aren't supported with the exception of
+`nn-subscribe`. If you're missing something, please create github
+issues!
 
 Currently supported:
 
@@ -33,6 +37,7 @@ Currently supported:
 - nn-subscribe for `(nn-socket 'sub)` sockets
 
 Favored TODO's:
+- support socket options
 - bundle nanomsg itself?
 
 All of nanomsg's protocols are supported:
