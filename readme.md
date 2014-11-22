@@ -18,7 +18,7 @@ on a socket's recv file-descriptor.
 
 ## Requirements
 
-This egg requires nanomsg-0.4-beta.
+This egg requires nanomsg-0.4-beta. Not tested on nanomsg-0.5-beta.
 
 ## Development Status
 These bindings are incomplete. If you're missing something, please
