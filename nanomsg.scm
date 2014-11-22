@@ -6,6 +6,7 @@
 #include <nanomsg/pubsub.h>
 #include <nanomsg/reqrep.h>
 #include <nanomsg/survey.h>
+#include <nanomsg/pair.h>
 <#
 
 ;; TODO: socket options NN_SUB_SUBSCRIBE NN_SUB_UNSUBSCRIBE
@@ -22,6 +23,7 @@
 (define-foreign-enum-type (nn-protocol int)
   (nn-protocol->int int->nn-protocol)
 
+  (pair NN_PAIR)
   (pub  NN_PUB)  (sub  NN_SUB)
   (pull NN_PULL) (push NN_PUSH)
   (req  NN_REQ)  (rep  NN_REP)
