@@ -1,6 +1,103 @@
 ;; -*- scheme -*-
 
-(compile -s nanomsg-module.scm -J -o nanomsg.so -lnanomsg)
+(compile -s nanomsg-module.scm -J -o nanomsg.so
+
+	 -lpthread
+	 -I./include
+
+	 -C -DNN_HAVE_EVENTFD
+	 -C -DNN_HAVE_SEMAPHORE
+	 -C -DNN_HAVE_POLL
+	 -C -DNN_USE_POLL
+	 -C -DNN_USE_LITERAL_IFADDR
+
+	 nanomsg-0.4-beta/src/core/epbase.c
+	 nanomsg-0.4-beta/src/core/sock.c
+	 nanomsg-0.4-beta/src/core/poll.c
+	 nanomsg-0.4-beta/src/core/symbol.c
+	 nanomsg-0.4-beta/src/core/ep.c
+	 nanomsg-0.4-beta/src/core/device.c
+	 nanomsg-0.4-beta/src/core/pipe.c
+	 nanomsg-0.4-beta/src/core/sockbase.c
+	 nanomsg-0.4-beta/src/core/global.c
+	 nanomsg-0.4-beta/src/transports/inproc/ins.c
+	 nanomsg-0.4-beta/src/transports/inproc/inproc.c
+	 nanomsg-0.4-beta/src/transports/inproc/cinproc.c
+	 nanomsg-0.4-beta/src/transports/inproc/binproc.c
+	 nanomsg-0.4-beta/src/transports/inproc/sinproc.c
+	 nanomsg-0.4-beta/src/transports/inproc/msgqueue.c
+	 nanomsg-0.4-beta/src/transports/utils/dns.c
+	 nanomsg-0.4-beta/src/transports/utils/literal.c
+	 nanomsg-0.4-beta/src/transports/utils/streamhdr.c
+	 nanomsg-0.4-beta/src/transports/utils/backoff.c
+	 nanomsg-0.4-beta/src/transports/utils/iface.c
+	 nanomsg-0.4-beta/src/transports/utils/port.c
+	 nanomsg-0.4-beta/src/transports/tcp/tcp.c
+	 nanomsg-0.4-beta/src/transports/tcp/stcp.c
+	 nanomsg-0.4-beta/src/transports/tcp/ctcp.c
+	 nanomsg-0.4-beta/src/transports/tcp/atcp.c
+	 nanomsg-0.4-beta/src/transports/tcp/btcp.c
+	 nanomsg-0.4-beta/src/transports/ipc/aipc.c
+	 nanomsg-0.4-beta/src/transports/ipc/bipc.c
+	 nanomsg-0.4-beta/src/transports/ipc/cipc.c
+	 nanomsg-0.4-beta/src/transports/ipc/ipc.c
+	 nanomsg-0.4-beta/src/transports/ipc/sipc.c
+	 nanomsg-0.4-beta/src/protocols/survey/xrespondent.c
+	 nanomsg-0.4-beta/src/protocols/survey/surveyor.c
+	 nanomsg-0.4-beta/src/protocols/survey/xsurveyor.c
+	 nanomsg-0.4-beta/src/protocols/survey/respondent.c
+	 nanomsg-0.4-beta/src/protocols/pair/pair.c
+	 nanomsg-0.4-beta/src/protocols/pair/xpair.c
+	 nanomsg-0.4-beta/src/protocols/utils/dist.c
+	 nanomsg-0.4-beta/src/protocols/utils/priolist.c
+	 nanomsg-0.4-beta/src/protocols/utils/fq.c
+	 nanomsg-0.4-beta/src/protocols/utils/excl.c
+	 nanomsg-0.4-beta/src/protocols/utils/lb.c
+	 nanomsg-0.4-beta/src/protocols/bus/xbus.c
+	 nanomsg-0.4-beta/src/protocols/bus/bus.c
+	 nanomsg-0.4-beta/src/protocols/pipeline/xpull.c
+	 nanomsg-0.4-beta/src/protocols/pipeline/push.c
+	 nanomsg-0.4-beta/src/protocols/pipeline/pull.c
+	 nanomsg-0.4-beta/src/protocols/pipeline/xpush.c
+	 nanomsg-0.4-beta/src/protocols/reqrep/rep.c
+	 nanomsg-0.4-beta/src/protocols/reqrep/req.c
+	 nanomsg-0.4-beta/src/protocols/reqrep/xrep.c
+	 nanomsg-0.4-beta/src/protocols/reqrep/xreq.c
+	 nanomsg-0.4-beta/src/protocols/pubsub/sub.c
+	 nanomsg-0.4-beta/src/protocols/pubsub/xpub.c
+	 nanomsg-0.4-beta/src/protocols/pubsub/xsub.c
+	 nanomsg-0.4-beta/src/protocols/pubsub/trie.c
+	 nanomsg-0.4-beta/src/protocols/pubsub/pub.c
+	 nanomsg-0.4-beta/src/aio/worker.c
+	 nanomsg-0.4-beta/src/aio/fsm.c
+	 nanomsg-0.4-beta/src/aio/ctx.c
+	 nanomsg-0.4-beta/src/aio/usock.c
+	 nanomsg-0.4-beta/src/aio/poller.c
+	 nanomsg-0.4-beta/src/aio/pool.c
+	 nanomsg-0.4-beta/src/aio/timerset.c
+	 nanomsg-0.4-beta/src/aio/timer.c
+	 nanomsg-0.4-beta/src/utils/err.c
+	 nanomsg-0.4-beta/src/utils/thread.c
+	 nanomsg-0.4-beta/src/utils/closefd.c
+	 nanomsg-0.4-beta/src/utils/atomic.c
+	 nanomsg-0.4-beta/src/utils/list.c
+	 nanomsg-0.4-beta/src/utils/stopwatch.c
+	 nanomsg-0.4-beta/src/utils/random.c
+	 nanomsg-0.4-beta/src/utils/wire.c
+	 nanomsg-0.4-beta/src/utils/mutex.c
+	 nanomsg-0.4-beta/src/utils/msg.c
+	 nanomsg-0.4-beta/src/utils/clock.c
+	 nanomsg-0.4-beta/src/utils/queue.c
+	 nanomsg-0.4-beta/src/utils/chunk.c
+	 nanomsg-0.4-beta/src/utils/efd.c
+	 nanomsg-0.4-beta/src/utils/hash.c
+	 nanomsg-0.4-beta/src/utils/alloc.c
+	 nanomsg-0.4-beta/src/utils/glock.c
+	 nanomsg-0.4-beta/src/utils/sleep.c
+	 nanomsg-0.4-beta/src/utils/chunkref.c
+	 nanomsg-0.4-beta/src/utils/sem.c
+	 )
+
 (compile -s nanomsg.import.scm)
 
 (install-extension 'nanomsg
