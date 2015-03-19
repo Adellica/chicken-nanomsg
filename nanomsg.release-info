@@ -3,3 +3,4 @@
 (uri targz "https://github.com/Adellica/chicken-nanomsg/tarball/{egg-release}")
 (release "0.1")
 (release "0.2")
+(release "0.3")
