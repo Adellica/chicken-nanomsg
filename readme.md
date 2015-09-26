@@ -18,36 +18,82 @@ on a socket's recv file-descriptor.
 
 ## Requirements
 
-This egg requires nanomsg-0.4-beta. Not tested on nanomsg-0.5-beta.
+This egg requires nanomsg-[0.4|0.5|0.6]-beta.
+
+## API
+
+    [procedure] (nn-socket protocol [domain])
+
+Create a nanomsg socket. Protocol can be any of the symbols pair, pub,
+sub, pull, push, req, rep, surveyor, respondent or bus. Domain can be
+the symbol sp or raw, and defaults to sp.
+
+    [procedure] (nn-bind socket address)
+
+[Binds](http://nanomsg.org/v0.6/nn_bind.3.html) nanomsg socket to
+address, where address is a string of the form
+"ipc:///var/ipc/music.nn.pair" or "tcp://0.0.0.0:10080". If the
+nn-library can't parse the address string, it throws an "Illegal
+argument" error.
+
+    [procedure] (nn-connect socket address)
+
+[Connects](http://nanomsg.org/v0.6/nn_connect.3.html) nanomsg socket
+`socket` to `address`.
+
+    [procedure] (nn-subscribe socket prefix)
+
+Set the [NN_SUB_SUBSCRIBE](http://nanomsg.org/v0.6/nn_pubsub.7.html)
+option on `socket` which will make the socket receive to all messages
+that start with `prefix`. Note that if this is never called, `(nn-sock
+'sub)` sockets will never receive anything.
+
+    [procedure] (nn-recv socket)
+
+Receive a message from socket. This blocks until a message is received
+from nanomsg, but it does not block other srfi-18 threads. It always
+returns a string. An error is thrown if the socket is in an illegal
+state.
+
+    [procedure] (nn-send socket msg)
+
+Send a message on `socket`, using the socket's semantics. `msg` must
+be a string.
+
+In the current implementation, this operation may block for certain
+protocols in which case other srfi-18 threads block too.
+
+    [procedure] (nn-recv* socket flags)
+
+Receive a message from socket. This will block other srfi-18 threads,
+unless the `nn/dontwait` flag is specified, in which case `nn-recv*`
+will immediately with either a message as a string or #f (for
+EAGAIN). An error is thrown if `socket` is in an illegal state.
+
+Note that memory is copied from the nanomsg buffer into a new scheme
+string.
+
+    [procedure] (nn-recv! socket buffer size flags)
+
+A version of `nn-recv*` which requires a preallocated buffer. If the
+size of the buffer can be found automatically (using
+`number-of-bytes`), size can be `#f`.
+
+    [procedure] (nn-close socket)
+
+Explicitly close `socket`. This is normally not needed as this is done
+in the socket's finalizer.
 
 ## Development Status
 
-These bindings are incomplete. All protocols and transport types
+These bindings are incomplete, but all protocols and transport types
 should be supported. However, socket options (`nn_setsockopt` and
 `nn_getsockopt`) aren't supported with the exception of
-`nn-subscribe`. If you're missing something, please create github
-issues!
-
-Currently supported:
-
-- `nn-socket` records types with finalizer
-- `nn-bind` and `nn-connect`
-- `nn-send` and `nn-recv`
-- non-blocking `nn-recv` with `(thread-wait-for-i/o!)`
-- nn-subscribe for `(nn-socket 'sub)` sockets
+`nn-subscribe`. Patches are welcome!
 
 Favored TODO's:
 - support socket options
 - bundle nanomsg itself?
-
-All of nanomsg's protocols are supported:
-
-- Request/reply protocol (req rep)
-- Publish/subscribe protocol (pub sub)
-- Survey protocol (survey respondent)
-- Pipeline protocol (push pull)
-- One-to-one protocol (pair)
-- Message bus protocol (bus)
 
 ## Sample
 
