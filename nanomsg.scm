@@ -105,8 +105,11 @@
   (nn-assert ( (foreign-lambda int "nn_freemsg" (c-pointer void)) pointer)))
 
 (define (nn-send socket data #!optional (flags 0))
-  (nn-assert ( (foreign-lambda int "nn_send" nn-socket blob int int)
-              socket data (number-of-bytes data) flags)))
+  (let ((size (if (string? data)
+		  (+ 1 (number-of-bytes data))
+		  (number-of-bytes data))))
+    (nn-assert ( (foreign-lambda int "nn_send" nn-socket blob int int)
+                socket data size flags))))
 
 (define (nn-recv! socket data size flags)
   (nn-assert ( (foreign-lambda int "nn_recv" nn-socket (c-pointer void) int int)
