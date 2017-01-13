@@ -35,7 +35,7 @@
 (define-foreign-enum-type (nn-domain int)
   (nn-domain->int int->nn-domain)
   (sp AF_SP)
-  (raw AF_SP_RAW))
+  (sp-raw AF_SP_RAW))
 
 ;; ==================== socket flags
 
