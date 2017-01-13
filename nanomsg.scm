@@ -168,3 +168,9 @@
 ;; could perhaps also accept a list of strings which handled the
 ;; memory efficiently.
 
+;; OBS: blocks other srfi-13 threads
+(define (nn-device s1 s2)
+  (nn-assert ((foreign-lambda int "nn_device" nn-socket nn-socket) s1 s2)))
+
+(define nn-term
+  (foreign-lambda void "nn_term"))
