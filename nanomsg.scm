@@ -161,3 +161,10 @@
           (loop)))))
 
 ;; TODO: support nn_sendmsg and nn_recvmsg?
+;;
+;; example scenario: you want to prefix all messages before sending
+;; for routing for purposes. now you'll have to (string-append prefix
+;; large-message) which is a lot of string-copying (right?). nn-send
+;; could perhaps also accept a list of strings which handled the
+;; memory efficiently.
+
