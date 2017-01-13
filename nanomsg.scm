@@ -69,15 +69,35 @@
                     (error "invalid nn_getsockopt destination storage size" fd_size))
                 fd))
 
+(define (nn-setsockopt socket level option value)
+  (cond ((string? value)
+         (nn-assert
+          ((foreign-lambda* int ( (nn-socket socket)
+                                  (int level) (int option)
+                                  ;; can't use c-string: we may need
+                                  ;; \x00 inside strings
+                                  (nonnull-scheme-pointer blob)
+                                  (int len))
+                            "return("
+                            "nn_setsockopt(socket, level, option, blob, len)"
+                            ");")
+           socket level option value (string-length value))))
+        ((fixnum? value)
+         (nn-assert
+          ((foreign-lambda* int ( (nn-socket socket)
+                                  (int level) (int option)
+                                  (int value))
+                            "return("
+                            "nn_setsockopt(socket, level, option, &value, sizeof(value))"
+                            ");")
+           socket level option value)))
+        (else (error "only strings and ints handled" value))))
+
 (define (nn-subscribe socket prefix)
-  (nn-assert
-   ((foreign-lambda* int ( (nn-socket socket)
-                      (nonnull-blob prefix)
-                      (int len))
-                "return("
-                "nn_setsockopt(socket, NN_SUB, NN_SUB_SUBSCRIBE, prefix, len)"
-                ");")
-    socket prefix (string-length prefix))))
+  (nn-setsockopt socket
+                 (foreign-value "NN_SUB" int)
+                 (foreign-value "NN_SUB_SUBSCRIBE" int)
+                 prefix))
 
 (define (nn-close socket)
   (nn-assert ( (foreign-lambda int "nn_close" nn-socket) socket)))
