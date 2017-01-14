@@ -8,6 +8,11 @@
 #include <nanomsg/survey.h>
 #include <nanomsg/pair.h>
 #include <nanomsg/bus.h>
+
+#include <nanomsg/inproc.h>
+#include <nanomsg/ipc.h>
+#include <nanomsg/tcp.h>
+#include <nanomsg/ws.h>
 <#
 
 ;; TODO: socket options NN_SUB_SUBSCRIBE NN_SUB_UNSUBSCRIBE
@@ -31,6 +36,56 @@
   (surveyor NN_SURVEYOR)  (respondent NN_RESPONDENT)
   (bus NN_BUS))
 
+(define-foreign-enum-type (nn-option-level int)
+  (nn-option-level->int int->nn-option-level)
+  (sol-socket NN_SOL_SOCKET)
+
+  ;; ==================== copy of nn-protocol
+  (pair NN_PAIR)
+  (pub  NN_PUB)  (sub  NN_SUB)
+  (pull NN_PULL) (push NN_PUSH)
+  (req  NN_REQ)  (rep  NN_REP)
+  (surveyor NN_SURVEYOR)  (respondent NN_RESPONDENT)
+  (bus NN_BUS)
+
+  ;; ==================== copy of nn-transport
+  (inproc NN_INPROC)
+  (ipc    NN_IPC)
+  (tcp    NN_TCP)
+  (ws     NN_WS))
+
+;; socket-level options for sol-socket . there are additional ones
+;; per-transport and per-protocol.
+(define-foreign-enum-type (nn-option int 0)
+  (nn-option->int int->nn-option)
+
+  (linger            NN_LINGER)
+  (sndbuf            NN_SNDBUF)
+  (rcvbuf            NN_RCVBUF)
+  (sndtimeo          NN_SNDTIMEO)
+  (rcvtimeo          NN_RCVTIMEO)
+  (reconnect-ivl     NN_RECONNECT_IVL)
+  (reconnect-ivl-max NN_RECONNECT_IVL_MAX)
+  (sndprio           NN_SNDPRIO)
+  (rcvprio           NN_RCVPRIO)
+  (sndfd             NN_SNDFD)
+  (rcvfd             NN_RCVFD)
+  (domain            NN_DOMAIN)
+  (protocol          NN_PROTOCOL)
+  (ipv4only          NN_IPV4ONLY)
+  (socket-name       NN_SOCKET_NAME)
+  (rcvmaxsize        NN_RCVMAXSIZE)
+  (maxttl            NN_MAXTTL)
+
+  (tcp-nodelay NN_TCP_NODELAY) ;; option-level == NN_TCP level
+
+  (surveyor-deadline NN_SURVEYOR_DEADLINE) ;; NN_SURVEYOR ;; int
+  (sub-subscribe NN_SUB_SUBSCRIBE) ;; NN_SUB string
+  (sub-unsubscribe NN_SUB_UNSUBSCRIBE) ;; NN_SUB string
+  (ws-msg-type NN_WS_MSG_TYPE) ;; NN_WS ;; int => NN_WS_MSG_TYPE_TEXT or NN_WS_MSG_TYPE_BINARY
+
+  )
+
 ;; nanomsg domain (AF_SP)
 (define-foreign-enum-type (nn-domain int)
   (nn-domain->int int->nn-domain)
@@ -39,7 +94,10 @@
 
 ;; ==================== socket flags
 
-(define nn/dontwait (foreign-value "NN_DONTWAIT" int))
+(define nn/dontwait           (foreign-value "NN_DONTWAIT" int))
+(define nn/ws-msg-type-text   (foreign-value "NN_WS_MSG_TYPE_TEXT" int))
+(define nn/ws-msg-type-binary (foreign-value "NN_WS_MSG_TYPE_BINARY" int))
+;; TODO: test NN_WS_MSG_TYPE
 
 (define (nn-strerror #!optional (errno (foreign-value "errno" int)))
   ((foreign-lambda c-string "nn_strerror" int) errno))
@@ -54,55 +112,139 @@
           (error (nn-strerror) val))
       val))
 
+;; turn 'linger into NN_LINGER etc (allow fixnums too, for a custom
+;; nanomsg build)
+(define (%nn-optionize option)
+  (cond ((symbol? option) (nn-option->int option))
+        ((fixnum? option) option)
+        (else (error "invalid option" option))))
 
-;; get the pollable fd for socket.
-(define (nn-recv-fd socket)
-  (let-location ((fd int -1)
-                 (fd_size int (foreign-value "sizeof(int)" int)))
-                (nn-assert
-                 ((foreign-lambda* int ( (nn-socket socket)
-                                    ((c-pointer int) fd)
-                                    ((c-pointer size_t) fds))
-                              "return(nn_getsockopt(socket, NN_SOL_SOCKET, NN_RCVFD, fd, fds));")
-                  socket (location fd) (location fd_size)))
-                (if (not (= (foreign-value "sizeof(int)" int) fd_size))
-                    (error "invalid nn_getsockopt destination storage size" fd_size))
-                fd))
+;; turn 'pair -> NN_PAIR etc
+(define (%nn-levelize level)
+  (cond ((symbol? level) (nn-option-level->int level))
+        ((fixnum? level) level)
+        (else (error "invalid option-level" level))))
+
+;; overwrite destination (may be "") with the value of the
+;; option. returns the length of the original data.
+(define (nn-getsockopt/string! socket level option destination)
+  (assert (or (blob? destination) (string? destination)))
+  (assert (and (fixnum? level) (fixnum? option)))
+  (let-location
+   ( (dst_size size_t (number-of-bytes destination)) )
+   (nn-assert
+    ((foreign-lambda*
+      int ( (nn-socket socket)
+            (int level) (int option)
+            (nonnull-scheme-pointer buffer)
+            ((c-pointer size_t) dst_size))
+      "return(nn_getsockopt(socket, level, option, buffer, dst_size));")
+     socket level option destination (location dst_size)))
+   dst_size))
+
+(define (nn-getsockopt/string socket level option)
+  (let* ((level (%nn-levelize level)) (option (%nn-optionize option))
+         (len (nn-getsockopt/string! socket level option ""))
+         (res (make-string len)))
+    (nn-getsockopt/string! socket level option res)
+    res))
+
+(define (nn-getsockopt/int socket level option)
+  (let ((level (%nn-levelize level)) (option (%nn-optionize option)))
+    (let-location
+     ( (dst int)
+       (dst_size int (foreign-value "sizeof(int)" int)) )
+     (nn-assert
+      ((foreign-lambda* int ( (nn-socket socket)
+                              (int level) (int option)
+                              ((c-pointer int) dst)
+                              ((c-pointer size_t) dst_size))
+                        "return(nn_getsockopt(socket, level, option, dst, dst_size));")
+       socket level option (location dst) (location dst_size)))
+     (if (not (= (foreign-value "sizeof(int)" int) dst_size))
+         (error "invalid nn_getsockopt destination storage size" dst_size)
+         dst))))
+
+(define (nn-setsockopt/string socket level option value)
+  (assert (or (blob? value) (string? value)))
+  (let ((level (%nn-levelize level)) (option (%nn-optionize option)))
+   (nn-assert
+    ((foreign-lambda*
+      int ( (nn-socket socket)
+            (int level) (int option)
+            (nonnull-scheme-pointer blob)
+            (int len))
+      "return(nn_setsockopt(socket, level, option, blob, len));")
+     socket level option value (number-of-bytes value)))))
+
+(define (nn-setsockopt/int socket level option value)
+  (assert (fixnum? value))
+  (let ((level (%nn-levelize level)) (option (%nn-optionize option)))
+    (nn-assert
+     ((foreign-lambda*
+       int ( (nn-socket socket)
+             (int level) (int option)
+             (int value))
+       "return(nn_setsockopt(socket, level, option, &value, sizeof(value)));")
+      socket level option value))))
 
 (define (nn-setsockopt socket level option value)
-  (cond ((string? value)
-         (nn-assert
-          ((foreign-lambda* int ( (nn-socket socket)
-                                  (int level) (int option)
-                                  ;; can't use c-string: we may need
-                                  ;; \x00 inside strings
-                                  (nonnull-scheme-pointer blob)
-                                  (int len))
-                            "return("
-                            "nn_setsockopt(socket, level, option, blob, len)"
-                            ");")
-           socket level option value (string-length value))))
-        ((fixnum? value)
-         (nn-assert
-          ((foreign-lambda* int ( (nn-socket socket)
-                                  (int level) (int option)
-                                  (int value))
-                            "return("
-                            "nn_setsockopt(socket, level, option, &value, sizeof(value))"
-                            ");")
-           socket level option value)))
-        (else (error "only strings and ints handled" value))))
+  (let ((level (%nn-levelize level)) (option (%nn-optionize option)))
+    (cond ((string? value) (nn-setsockopt/string socket level option value))
+          ((fixnum? value) (nn-setsockopt/string socket level option value))
+          (else (error "unhandled type for setsockopt" value)))))
+
+;; ==================== convenience socket options ====================
+(define-syntax define-nn-so
+  (syntax-rules ()
+    ((_ name level option get)
+     (define name (lambda (s) (get s level option))))
+    ((_ name level option get set)
+     (define name
+       (getter-with-setter
+        (lambda (s) (get s level option))
+        (lambda (s v) (set s level option v)))))))
+
+(define-syntax define-nn-so-int ;; int sol-socket
+  (syntax-rules (set)
+    ((_ name level option)
+     (define-nn-so name 'sol-socket option nn-getsockopt/int))
+    ((_ name level option set)
+     (define-nn-so name 'sol-socket option nn-getsockopt/int nn-setsockopt/int))))
+
+(define-nn-so nn-socket-domain   'sol-socket 'domain
+  (compose int->nn-domain nn-getsockopt/int))
+(define-nn-so nn-socket-protocol 'sol-socket 'protocol
+  (compose int->nn-protocol nn-getsockopt/int))
+(define-nn-so nn-socket-name     'sol-socket 'socket-name
+  nn-getsockopt/string nn-setsockopt/string)
+
+(define-nn-so-int nn-socket-rcvfd             'sol-socket 'rcvfd)
+(define-nn-so-int nn-socket-sndfd             'sol-socket 'sndfd)
+(define-nn-so-int nn-socket-linger            'sol-socket 'linger set)
+(define-nn-so-int nn-socket-sndbuf            'sol-socket 'sndbuf set)
+(define-nn-so-int nn-socket-rcvbuf            'sol-socket 'rcvbuf set)
+(define-nn-so-int nn-socket-sndtimeo          'sol-socket 'sndtimeo set)
+(define-nn-so-int nn-socket-rcvtimeo          'sol-socket 'rcvtimeo set)
+(define-nn-so-int nn-socket-reconnect-ivl     'sol-socket 'reconnect-ivl set)
+(define-nn-so-int nn-socket-reconnect-ivl-max 'sol-socket 'reconnect-ivl-max set)
+(define-nn-so-int nn-socket-sndprio           'sol-socket 'sndprio set)
+(define-nn-so-int nn-socket-rcvprio           'sol-socket 'rcvprio set)
+(define-nn-so-int nn-socket-ipv4only          'sol-socket 'ipv4only set)
+(define-nn-so-int nn-socket-rcvmaxsize        'sol-socket 'rcvmaxsize set)
+(define-nn-so-int nn-socket-maxttl            'sol-socket 'maxttl set)
 
 (define (nn-subscribe socket prefix)
-  (nn-setsockopt socket
-                 (foreign-value "NN_SUB" int)
-                 (foreign-value "NN_SUB_SUBSCRIBE" int)
-                 prefix))
+  (nn-setsockopt/string socket 'sub 'sub-subscribe prefix))
+(define (nn-unsubscribe socket prefix)
+  (nn-setsockopt/string socket 'sub 'sub-unsubscribe prefix))
+
+;; TODO: wrappers for NN_WS_MSG_TYPE and NN_TCP_NODELAY ?
+
+;; ====================
 
 (define (nn-close socket)
   (nn-assert ( (foreign-lambda int "nn_close" nn-socket) socket)))
-
-
 
 ;; int nn_socket (int domain, int protocol)
 ;; OBS: args reversed
@@ -157,7 +299,7 @@
     (or (nn-recv* socket nn/dontwait)
         (begin
           ;; is getting the fd an expensive operation?
-          (thread-wait-for-i/o! (nn-recv-fd socket) #:input)
+          (thread-wait-for-i/o! (nn-socket-rcvfd socket) #:input)
           (loop)))))
 
 ;; TODO: support nn_sendmsg and nn_recvmsg?
