@@ -18,35 +18,48 @@ on a socket's recv file-descriptor.
 
 ## Requirements
 
-This egg requires nanomsg-[0.4|0.5|0.6]-beta.
+Version `1.0.0-rc1` of this egg requires
+[nanomsg-1.0.0](https://github.com/nanomsg/nanomsg/releases/tag/1.0.0).
 
 ## API
 
     [procedure] (nn-socket protocol [domain])
 
-Create a nanomsg socket. Protocol can be any of the symbols pair, pub,
-sub, pull, push, req, rep, surveyor, respondent or bus. Domain can be
-the symbol sp or raw, and defaults to sp.
+[Create](http://nanomsg.org/v1.0.0/nn_socket.3.html) a nanomsg
+socket. Protocol can be any of the symbols `pair`, `pub`, `sub`,
+`pull`, `push`, `req`, `rep`, `surveyor`, `respondent` or
+`bus`. Domain can be the symbol `sp` or `sp-raw`, and defaults to
+`sp`.
 
     [procedure] (nn-bind socket address)
 
-[Binds](http://nanomsg.org/v0.6/nn_bind.3.html) nanomsg socket to
+[Binds](http://nanomsg.org/v1.0.0/nn_bind.3.html) nanomsg socket to
 address, where address is a string of the form
-"ipc:///var/ipc/music.nn.pair" or "tcp://0.0.0.0:10080". If the
+`"ipc:///var/ipc/music.nn.pair"` or `"tcp://0.0.0.0:10080"`. If the
 nn-library can't parse the address string, it throws an "Illegal
 argument" error.
 
     [procedure] (nn-connect socket address)
 
-[Connects](http://nanomsg.org/v0.6/nn_connect.3.html) nanomsg socket
+[Connects](http://nanomsg.org/v1.0.0/nn_connect.3.html) nanomsg socket
 `socket` to `address`.
 
     [procedure] (nn-subscribe socket prefix)
 
-Set the [NN_SUB_SUBSCRIBE](http://nanomsg.org/v0.6/nn_pubsub.7.html)
+Set the [NN_SUB_SUBSCRIBE](http://nanomsg.org/v1.0.0/nn_pubsub.7.html)
 option on `socket` which will make the socket receive to all messages
-that start with `prefix`. Note that if this is never called, `(nn-sock
-'sub)` sockets will never receive anything.
+that start with `prefix`.
+
+> Note that if this is never called, `(nn-sock 'sub)` sockets will
+> never receive anything.
+
+    [procedure] (nn-send socket msg)
+
+Send a message on `socket`, using the socket's semantics. `msg` must
+be a string.
+
+> Note that in the current implementation, this operation may block
+> other srfi-18 threads.
 
     [procedure] (nn-recv socket)
 
@@ -55,45 +68,69 @@ from nanomsg, but it does not block other srfi-18 threads. It always
 returns a string. An error is thrown if the socket is in an illegal
 state.
 
-    [procedure] (nn-send socket msg)
-
-Send a message on `socket`, using the socket's semantics. `msg` must
-be a string.
-
-In the current implementation, this operation may block for certain
-protocols in which case other srfi-18 threads block too.
+> Note that memory is copied from the nanomsg buffer into a new scheme
+> string.
 
     [procedure] (nn-recv* socket flags)
 
 Receive a message from socket. This will block other srfi-18 threads,
 unless the `nn/dontwait` flag is specified, in which case `nn-recv*`
-will immediately with either a message as a string or #f (for
-EAGAIN). An error is thrown if `socket` is in an illegal state.
+will exit immediately with either a message as a string or #f (for
+`EAGAIN`). An error is thrown if `socket` is in an illegal state.
 
-Note that memory is copied from the nanomsg buffer into a new scheme
-string.
-
-    [procedure] (nn-recv! socket buffer size flags)
-
-A version of `nn-recv*` which requires a preallocated buffer. If the
-size of the buffer can be found automatically (using
-`number-of-bytes`), size can be `#f`.
+> Note that this can be combined with `(nn-socket-rcvfd socket)` for
+> custom polling.
 
     [procedure] (nn-close socket)
 
 Explicitly close `socket`. This is normally not needed as this is done
 in the socket's finalizer.
 
+    [procedure] (nn-shutdown socket endpoint)
+
+Removed `endpoint` from `socket`.
+See [nn_shutdown](http://nanomsg.org/v1.0.0/nn_shutdown.3.html).
+
+    [procedure] (nn-get-statistic socket statistic)
+
+Retrieve a statistic from `socket`. `statistic` may be any one of
+these symbols: `established-connections` `accepted-connections`
+`dropped-connections` `broken-connections` `connect-errors`
+`bind-errors` `accept-errors` `current-connections`
+`inprogress-connections` `current-ep-errors` `messages-sent`
+`messages-received` `bytes-sent` `bytes-received`
+`current-snd-priority`. See
+[nn_get_statistic](http://nanomsg.org/v1.0.0/nn_get_statistic.3.html).
+
+    [procedure] (nn-socket-name socket)
+    [procedure] (nn-socket-linger socket)
+    [procedure] (nn-socket-rcvtimeo socket)
+    [procedure] (nn-socket-sndtimeo socket)
+    [procedure] (nn-socket-rcvbuf socket)
+    [procedure] (nn-socket-sndbuf socket)
+    [procedure] (nn-socket-sndfd socket)
+    [procedure] (nn-socket-rcvfd socket)
+    [procedure] (nn-socket-protocol socket)
+    [procedure] (nn-socket-domain socket)
+    [procedure] (nn-socket-maxttl socket)
+    [procedure] (nn-socket-rcvmaxsize socket)
+    [procedure] (nn-socket-rcvprio socket)
+    [procedure] (nn-socket-sndprio socket)
+    [procedure] (nn-socket-reconnect-ivl-max socket)
+    [procedure] (nn-socket-reconnect-ivl socket)
+    [procedure] (nn-socket-ipv4only socket)
+
+Retrieve the socket option associated with `socket`. Most of these
+also provide setters so that you can, for example, can do `(set!
+(nn-socket-name s) "foo")`.
+
+For other socket options, try `nn-getsockopt/string`,
+`nn-getsockopt/int`, `nn-setsockopt/string` and `nn-setsockopt/int`.
+
 ## Development Status
 
-These bindings are incomplete, but all protocols and transport types
-should be supported. However, socket options (`nn_setsockopt` and
-`nn_getsockopt`) aren't supported with the exception of
-`nn-subscribe`. Patches are welcome!
-
-Favored TODO's:
-- support socket options
-- bundle nanomsg itself?
+These bindings to nanomsg 1.0.0 should be complete, though the egg
+hasn't undergode rigerous testing int the field yet.
 
 ## Sample
 
