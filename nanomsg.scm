@@ -25,6 +25,14 @@
   %nn-socket-unbox
   %nn-socket-box)
 
+(define-record-type nn-endpoint (%nn-endpoint-box int)
+  nn-endpoint?
+  (int %nn-endpoint-unbox))
+
+(define-foreign-type nn-endpoint int
+  %nn-endpoint-unbox
+  %nn-endpoint-box)
+
 ;; nanomsg protocol enum
 (define-foreign-enum-type (nn-protocol int)
   (nn-protocol->int int->nn-protocol)
@@ -246,6 +254,10 @@
 (define (nn-close socket)
   (nn-assert ( (foreign-lambda int "nn_close" nn-socket) socket)))
 
+(define (nn-shutdown socket endpoint)
+  (nn-assert ( (foreign-lambda int "nn_shutdown" nn-socket nn-endpoint)
+               socket endpoint)))
+
 ;; int nn_socket (int domain, int protocol)
 ;; OBS: args reversed
 ;; TODO: add finalizer
@@ -258,10 +270,14 @@
    nn-close))
 
 (define (nn-bind socket address)
-  (nn-assert ((foreign-lambda int "nn_bind" nn-socket c-string) socket address)))
+  (%nn-endpoint-box
+   (nn-assert
+    ((foreign-lambda int "nn_bind" nn-socket c-string) socket address))))
 
 (define (nn-connect socket address)
-  (nn-assert ((foreign-lambda int "nn_connect" nn-socket c-string) socket address)))
+  (%nn-endpoint-box
+   (nn-assert
+    ((foreign-lambda int "nn_connect" nn-socket c-string) socket address))))
 
 (define (nn-freemsg! pointer)
   (nn-assert ( (foreign-lambda int "nn_freemsg" (c-pointer void)) pointer)))
