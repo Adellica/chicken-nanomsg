@@ -316,3 +316,43 @@
 
 (define nn-term
   (foreign-lambda void "nn_term"))
+
+
+;; ==================== statistics ====================
+(define-foreign-enum-type (nn-statistic int)
+  (nn-statistic->int int->nn-statistic)
+
+  (established-connections NN_STAT_ESTABLISHED_CONNECTIONS)
+  (accepted-connections    NN_STAT_ACCEPTED_CONNECTIONS)
+  (dropped-connections     NN_STAT_DROPPED_CONNECTIONS)
+  (broken-connections      NN_STAT_BROKEN_CONNECTIONS)
+  (connect-errors          NN_STAT_CONNECT_ERRORS)
+  (bind-errors             NN_STAT_BIND_ERRORS)
+  (accept-errors           NN_STAT_ACCEPT_ERRORS)
+  (current-connections     NN_STAT_CURRENT_CONNECTIONS)
+  (inprogress-connections  NN_STAT_INPROGRESS_CONNECTIONS)
+  (current-ep-errors       NN_STAT_CURRENT_EP_ERRORS)
+  (messages-sent           NN_STAT_MESSAGES_SENT)
+  (messages-received       NN_STAT_MESSAGES_RECEIVED)
+  (bytes-sent              NN_STAT_BYTES_SENT)
+  (bytes-received          NN_STAT_BYTES_RECEIVED)
+  (current-snd-priority    NN_STAT_CURRENT_SND_PRIORITY))
+
+(define (nn-get-statistic socket statistic)
+  (let-location
+   ((ok int 0))
+   (let ((result
+          ((foreign-lambda*
+            unsigned-integer64 ( (nn-socket socket)
+                                 (nn-statistic stat)
+                                 ((c-pointer int) ok) )
+            "uint64_t res = nn_get_statistic(socket, stat);"
+             ;; can't represent (uint64_t)-1 with 52 bits:
+             ;; http://api.call-cc.org/doc/foreign/types/unsigned-integer64
+            "if(res != (uint64_t)-1) *ok = 1;"
+            "return(res);")
+           socket statistic (location ok))))
+     (if (= ok 1)
+         result
+         (error (nn-strerror) statistic)))))
+
