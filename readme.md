@@ -18,7 +18,7 @@ on a socket's recv file-descriptor.
 
 ## Requirements
 
-Version `1.0.0-rc1` of this egg requires
+Version `1.0.0.1` of this egg requires
 [nanomsg-1.0.0](https://github.com/nanomsg/nanomsg/releases/tag/1.0.0).
 
 ## API
