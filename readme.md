@@ -119,6 +119,7 @@ these symbols: `established-connections` `accepted-connections`
     [procedure] (nn-socket-reconnect-ivl-max socket)
     [procedure] (nn-socket-reconnect-ivl socket)
     [procedure] (nn-socket-ipv4only socket)
+    [procedure] (nn-req-socket-resend-ivl socket)
 
 Retrieve the socket option associated with `socket`. Most of these
 also provide setters so that you can, for example, can do `(set!

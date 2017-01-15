@@ -86,7 +86,7 @@
   (maxttl            NN_MAXTTL)
 
   (tcp-nodelay NN_TCP_NODELAY) ;; option-level == NN_TCP level
-
+  (req-resend-ivl NN_REQ_RESEND_IVL) ;; option-level NN_REQ
   (surveyor-deadline NN_SURVEYOR_DEADLINE) ;; NN_SURVEYOR ;; int
   (sub-subscribe NN_SUB_SUBSCRIBE) ;; NN_SUB string
   (sub-unsubscribe NN_SUB_UNSUBSCRIBE) ;; NN_SUB string
@@ -241,6 +241,7 @@
 (define-nn-so-int nn-socket-ipv4only          'sol-socket 'ipv4only set)
 (define-nn-so-int nn-socket-rcvmaxsize        'sol-socket 'rcvmaxsize set)
 (define-nn-so-int nn-socket-maxttl            'sol-socket 'maxttl set)
+(define-nn-so-int nn-req-socket-resend-ivl    'req        'req-resend-ivl set)
 
 (define (nn-subscribe socket prefix)
   (nn-setsockopt/string socket 'sub 'sub-subscribe prefix))

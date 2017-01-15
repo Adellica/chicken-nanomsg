@@ -29,6 +29,7 @@
                  nn-socket-rcvprio nn-socket-sndprio
                  nn-socket-reconnect-ivl-max nn-socket-reconnect-ivl
                  nn-socket-ipv4only
+                 nn-req-socket-resend-ivl
 
                  ;; flags
                  nn/ws-msg-type-binary
