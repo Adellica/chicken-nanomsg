@@ -216,9 +216,9 @@
 (define-syntax define-nn-so-int ;; int sol-socket
   (syntax-rules (set)
     ((_ name level option)
-     (define-nn-so name 'sol-socket option nn-getsockopt/int))
+     (define-nn-so name level option nn-getsockopt/int))
     ((_ name level option set)
-     (define-nn-so name 'sol-socket option nn-getsockopt/int nn-setsockopt/int))))
+     (define-nn-so name level option nn-getsockopt/int nn-setsockopt/int))))
 
 (define-nn-so nn-socket-domain   'sol-socket 'domain
   (compose int->nn-domain nn-getsockopt/int))
