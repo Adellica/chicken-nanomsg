@@ -283,9 +283,18 @@
 (define (nn-freemsg! pointer)
   (nn-assert ( (foreign-lambda int "nn_freemsg" (c-pointer void)) pointer)))
 
-(define (nn-send socket data #!optional (flags 0))
+;; this may block other srfi-18 threads
+(define (nn-send* socket data flags)
   (nn-assert ( (foreign-lambda int "nn_send" nn-socket blob int int)
               socket data (number-of-bytes data) flags)))
+
+;; this will not block other srfi-18 threads. see nn-recv.
+(define (nn-send socket data)
+  (let loop ()
+    (or (nn-send* socket data nn/dontwait)
+        (begin ;; yup, we poll NN_SNDFD's for *readablity*
+          (thread-wait-for-i/o! (nn-socket-sndfd socket) #:input)
+          (loop)))))
 
 (define (nn-recv! socket data size flags)
   (nn-assert ( (foreign-lambda int "nn_recv" nn-socket (c-pointer void) int int)

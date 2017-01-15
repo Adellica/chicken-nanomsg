@@ -8,7 +8,8 @@
                  nn-statistic->int int->nn-statistic
 
                  nn-term nn-device
-                 nn-recv nn-recv! nn-recv* nn-send
+                 nn-recv nn-recv* nn-recv!
+                 nn-send nn-send*
                  ;; nn-freemsg!
                  nn-connect nn-bind
                  nn-socket  nn-shutdown nn-close

@@ -56,10 +56,15 @@ that start with `prefix`.
     [procedure] (nn-send socket msg)
 
 Send a message on `socket`, using the socket's semantics. `msg` must
-be a string.
+be a string. This will not block other srfi-18 threads. Returns the
+number of bytes sent.
 
-> Note that in the current implementation, this operation may block
-> other srfi-18 threads.
+    [procedure] (nn-send* socket msg flags)
+
+Like `nn-send`, but may block other srfi-18 threads when `flags` is
+`0`. `flags` may be `nn/dontwait` in which case `nn-send*` always
+returns immediately, and returns `#f` is the operation would block
+(number of bytes otherwise).
 
     [procedure] (nn-recv socket)
 
