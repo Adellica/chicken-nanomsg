@@ -261,14 +261,11 @@
 
 ;; int nn_socket (int domain, int protocol)
 ;; OBS: args reversed
-;; TODO: add finalizer
 (define (nn-socket protocol #!optional (domain 'sp))
-  (set-finalizer!
-   (%nn-socket-box
-    (nn-assert ((foreign-lambda int nn_socket nn-domain nn-protocol)
-                domain
-                protocol)))
-   nn-close))
+ (%nn-socket-box
+  (nn-assert ((foreign-lambda int nn_socket nn-domain nn-protocol)
+              domain
+              protocol))))
 
 (define (nn-bind socket address)
   (%nn-endpoint-box
