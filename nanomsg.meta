@@ -2,4 +2,5 @@
 ((author "Adellica AS")
  (license "MIT") ;; same as nanomsg
  (depends foreigners)
+ (test-depends test)
  (category net))
