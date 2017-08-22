@@ -31,6 +31,11 @@ socket. Protocol can be any of the symbols `pair`, `pub`, `sub`,
 `bus`. Domain can be the symbol `sp` or `sp-raw`, and defaults to
 `sp`.
 
+    [procedure] (nn-socket* protocol [domain])
+
+Same as `(nn-socket)`, but does __not__ add a finalizer which calls
+`(nn-close)` when the socket is garbage collected.
+
     [procedure] (nn-bind socket address)
 
 [Binds](http://nanomsg.org/v1.0.0/nn_bind.3.html) nanomsg socket to
