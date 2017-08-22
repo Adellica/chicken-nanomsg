@@ -34,7 +34,7 @@ it is garbage-collected.
 
     [procedure] (nn-socket* protocol [domain])
 
-Just like `nn-socket`, but dooes not attach a finalizer on the
+Just like `nn-socket`, but does __not__ attach a finalizer on the
 returned socket object. You must manually call `nn-close` on the
 socket after use.
 
