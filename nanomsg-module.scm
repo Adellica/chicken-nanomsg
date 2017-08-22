@@ -12,7 +12,7 @@
                  nn-send nn-send*
                  ;; nn-freemsg!
                  nn-connect nn-bind
-                 nn-socket  nn-shutdown nn-close
+                 nn-socket nn-socket*  nn-shutdown nn-close
 
                  nn-unsubscribe nn-subscribe
 

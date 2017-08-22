@@ -29,7 +29,14 @@ Version `1.0.0.2` of this egg requires
 socket. Protocol can be any of the symbols `pair`, `pub`, `sub`,
 `pull`, `push`, `req`, `rep`, `surveyor`, `respondent` or
 `bus`. Domain can be the symbol `sp` or `sp-raw`, and defaults to
-`sp`.
+`sp`. The returned socket is automatically closed with `nn-close` when
+it is garbage-collected.
+
+    [procedure] (nn-socket* protocol [domain])
+
+Just like `nn-socket`, but dooes not attach a finalizer on the
+returned socket object. You must manually call `nn-close` on the
+socket after use.
 
     [procedure] (nn-bind socket address)
 
