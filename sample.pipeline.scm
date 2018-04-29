@@ -1,5 +1,7 @@
 ;; watch nanomsg's pipeline load-balancer in action.
-(use nanomsg)
+(cond-expand
+ (chicken-5 (import nanomsg))
+ (else      (use nanomsg)))
 
 (define push (nn-socket 'push))
 (define pull1 (nn-socket 'pull))

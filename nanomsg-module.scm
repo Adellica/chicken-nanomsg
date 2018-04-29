@@ -1,4 +1,17 @@
-(module nanomsg (;; types
+
+;; once inside a module definition, we don't have cond-expand
+;; available anymore. in order to get it, we need to do (import
+;; chicken.base) for C5 and (import chicken) for C4. so we need
+;; cond-expand to import cond-expand. this little macro helper helps
+;; us avoid copy-pasing module definitions.
+(define-syntax mymodule
+  (syntax-rules ()
+    ((_ name exports body ...)
+     (cond-expand
+      (chicken-5 (module name exports (import scheme (chicken base)) body ...))
+      (else      (module name exports (import scheme chicken foreign) body ...))))))
+
+(mymodule nanomsg (;; types
                  nn-endpoint? nn-socket?
 
                  nn-domain->int int->nn-domain
@@ -39,7 +52,6 @@
 
                  ;; util
                  nn-get-statistic)
-
-(import chicken scheme data-structures foreign)
+;; macro places use/import here
 (include "nanomsg.scm")
 )

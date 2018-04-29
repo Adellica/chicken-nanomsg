@@ -1,4 +1,18 @@
-(use lolevel foreigners srfi-18)
+(cond-expand
+ (chicken-5
+  (import scheme
+	  (chicken base)
+	  (only (chicken blob) blob?)
+	  (only (chicken memory) move-memory!)
+	  (only (chicken memory representation) number-of-bytes)
+	  (only (chicken gc) set-finalizer!)
+	  (chicken foreign)
+          foreigners
+          srfi-18))
+ (else (use (only lolevel move-memory! number-of-bytes)
+            (only data-structures compose)
+            foreigners
+            srfi-18)))
 
 #>
 #include <nanomsg/nn.h>

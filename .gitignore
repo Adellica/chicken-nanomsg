@@ -2,3 +2,7 @@
 /nanomsg.import.scm
 /nanomsg.so
 /salmonella.log
+/nanomsg.build.sh
+/nanomsg.install.sh
+/nanomsg.link
+/nanomsg.static.o

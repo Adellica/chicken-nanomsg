@@ -1,4 +1,6 @@
-(use nanomsg test)
+(cond-expand
+ (chicken-5 (import nanomsg test (only srfi-18 thread-sleep!)))
+ (else      (use    nanomsg test (only srfi-18 thread-sleep!))))
 
 (define (wait) (thread-sleep! 0.1))
 (define pair1 (nn-socket 'pair))

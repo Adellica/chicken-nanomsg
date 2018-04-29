@@ -1,0 +1,11 @@
+;; -*- scheme -*-
+((author "Adellica AS")
+ (license "MIT") ;; same as nanomsg
+ (dependencies foreigners)
+ (test-dependencies test)
+ (foreign-dependencies nanomsg)
+ (category net)
+ (components
+  (extension nanomsg
+	     (source "nanomsg-module.scm")
+	     (link-options "-L" "-lnanomsg"))))

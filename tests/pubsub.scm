@@ -1,6 +1,9 @@
 ;; TODO: can't get unsubscribe working
+(cond-expand
+ (chicken-5
+  (import nanomsg test (only srfi-18 thread-sleep!)))
+ (else (use nanomsg test (only srfi-18 thread-sleep!))))
 
-(use nanomsg test)
 (define (wait) (thread-sleep! 0.1))
 (define sub (nn-socket 'sub))
 (define pub (nn-socket 'pub))

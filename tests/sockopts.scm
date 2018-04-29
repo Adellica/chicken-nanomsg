@@ -1,4 +1,6 @@
-(use nanomsg test)
+(cond-expand
+ (chicken-5 (import nanomsg test))
+ (else      (use    nanomsg test)))
 
 (test "protocol" 'bus    (nn-socket-protocol (nn-socket 'bus)))
 (test "protocol" 'req    (nn-socket-protocol (nn-socket 'req)))

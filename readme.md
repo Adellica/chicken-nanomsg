@@ -151,7 +151,7 @@ rigerous testing in the field yet.
 
 ```scheme
 ;; test.scm
-(use nanomsg)
+(import nanomsg)
 
 (define s (nn-socket 'rep))
 (nn-bind s "tcp://127.0.0.1:22022")
