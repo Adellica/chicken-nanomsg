@@ -134,7 +134,7 @@
           (error (nn-strerror) val))
       val))
 
-;; turn 'linger into NN_LINGER etc (allow fixnums too, for a custom
+;; turn 'socket-name into NN_SOCKET_NAME etc (allow fixnums too, for a custom
 ;; nanomsg build)
 (define (%nn-optionize option)
   (cond ((symbol? option) (nn-option->int option))

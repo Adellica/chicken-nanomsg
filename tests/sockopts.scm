@@ -9,8 +9,8 @@
 
 (define s  (nn-socket 'bus))
 
+;; nn-socket-linger is no longer supported
 (set! (nn-socket-name s)           "foo")
-(set! (nn-socket-linger s)             1)
 (set! (nn-socket-sndbuf s)             2)
 (set! (nn-socket-rcvbuf s)             3)
 (set! (nn-socket-sndtimeo s)           4)
@@ -25,7 +25,6 @@
 (test "NN_SOCKET_NAME"    "foo" (nn-socket-name s))
 (test "NN_SNDFD"             #t (fixnum? (nn-socket-sndfd s)))
 (test "NN_RCVFD"             #t (fixnum? (nn-socket-rcvfd s)))
-(test "NN_LINGER"             1 (nn-socket-linger s))
 (test "NN_SNDBUF"             2 (nn-socket-sndbuf s))
 (test "NN_RCVBUF"             3 (nn-socket-rcvbuf s))
 (test "NN_SNDTIMEO"           4 (nn-socket-sndtimeo s))
