@@ -145,7 +145,7 @@ For other socket options, try `nn-getsockopt/string`,
 These bindings to nanomsg 1.0.0 should be fairly complete, the only
 missing functionality is the control messages (`nn_recvmsg`,
 `nn_sendmsg` and `nn_cmsg`). Also, note that the egg hasn't undergode
-rigerous testing int the field yet.
+rigerous testing in the field yet.
 
 ## Sample
 
