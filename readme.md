@@ -14,12 +14,14 @@ other srfi-18 threads.
 
 Nanomsg is smaller, written in C, has a simplified API (sockets are
 simple ints), no multipart messages, and has explicit support for poll
-on a socket's recv file-descriptor.
+on a socket's recv file-descriptor, which integrates well with
+[Chicken Scheme].
 
 ## Requirements
 
-Version `1.0.0.2` of this egg requires
-[nanomsg-1.0.0](https://github.com/nanomsg/nanomsg/releases/tag/1.0.0).
+This egg requires
+[nanomsg-1.0.0](https://github.com/nanomsg/nanomsg/releases/tag/1.0.0)
+or higher.
 
 ## API
 
