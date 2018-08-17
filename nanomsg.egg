@@ -1,7 +1,7 @@
 ;; -*- scheme -*-
 ((author "Adellica AS")
  (license "MIT") ;; same as nanomsg
- (dependencies foreigners)
+ (dependencies foreigners srfi-18)
  (test-dependencies test)
  (foreign-dependencies nanomsg)
  (category net)
